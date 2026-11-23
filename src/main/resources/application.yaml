@@ -1,0 +1,16 @@
+server:
+  port: 8080
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/cafat_initial}
+    username: ${DB_USER:cafat}
+    password: ${DB_PASSWORD:cafat}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  artemis:
+    mode: native
+    broker-url: ${ARTEMIS_URL:tcp://localhost:61616}
+    user: ${ARTEMIS_USER:artemis}
+    password: ${ARTEMIS_PASSWORD:artemis}

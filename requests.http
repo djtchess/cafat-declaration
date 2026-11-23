@@ -1,0 +1,39 @@
+### Compte initial (préchargé à 0)
+GET http://localhost:8080/api/comptes/1001
+
+### Premier dépôt : 1000 x 20 % = 200
+POST http://localhost:8080/api/declarations
+Content-Type: application/json
+
+{
+  "employeurId": 1001,
+  "reference": "T4-2026-EMP1001",
+  "salaireBrut": 1000.00
+}
+
+### Consulter le compte (attendu 200 après le premier dépôt)
+GET http://localhost:8080/api/comptes/1001
+
+### Rejouer EXACTEMENT le même POST : le solde augmente une seconde fois
+POST http://localhost:8080/api/declarations
+Content-Type: application/json
+
+{
+  "employeurId": 1001,
+  "reference": "T4-2026-EMP1001",
+  "salaireBrut": 1000.00
+}
+
+### Erreur de calcul : HTTP 422, la déclaration est quand même conservée
+POST http://localhost:8080/api/declarations
+Content-Type: application/json
+
+{
+  "employeurId": 1001,
+  "reference": "DECL-INVALIDE",
+  "salaireBrut": -100.00
+}
+
+### Vérifier les lignes enregistrées
+GET http://localhost:8080/api/declarations?employeurId=1001
+
