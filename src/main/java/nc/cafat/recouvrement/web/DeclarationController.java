@@ -33,8 +33,8 @@ public class DeclarationController {
     @ResponseStatus(HttpStatus.CREATED)
     public DepotResponse deposer(@RequestBody DepotRequest request) throws CalculException {
         Declaration d = new Declaration(request.employeurId(), request.reference(), request.salaireBrut());
-        service.deposer(d);
-        return new DepotResponse(d.getId(), d.getReference(), "Déclaration déposée (version initiale)");
+        d = service.deposer(d);
+        return new DepotResponse(d.getId(), d.getReference(), "Déclaration déposée");
     }
 
     @GetMapping("/declarations")

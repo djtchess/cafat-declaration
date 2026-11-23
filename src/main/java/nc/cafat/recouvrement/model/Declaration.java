@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "declaration")
+// La référence identifie un dépôt unique, même en cas de concurrence.
+@Table(name = "declaration", uniqueConstraints =
+    @UniqueConstraint(name = "uk_declaration_reference", columnNames = {"reference"}))
 public class Declaration {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

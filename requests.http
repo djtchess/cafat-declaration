@@ -14,7 +14,7 @@ Content-Type: application/json
 ### Consulter le compte (attendu 200 après le premier dépôt)
 GET http://localhost:8080/api/comptes/1001
 
-### Rejouer EXACTEMENT le même POST : le solde augmente une seconde fois
+### Rejouer EXACTEMENT le même POST : le solde reste inchangé
 POST http://localhost:8080/api/declarations
 Content-Type: application/json
 
@@ -24,7 +24,7 @@ Content-Type: application/json
   "salaireBrut": 1000.00
 }
 
-### Erreur de calcul : HTTP 422, la déclaration est quand même conservée
+### Erreur de calcul : HTTP 422, la déclaration est annulée
 POST http://localhost:8080/api/declarations
 Content-Type: application/json
 

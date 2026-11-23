@@ -3,9 +3,11 @@ package nc.cafat.recouvrement.service;
 import nc.cafat.recouvrement.model.Declaration;
 import nc.cafat.recouvrement.repo.CompteRepository;
 import nc.cafat.recouvrement.repo.DeclarationRepository;
+
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.math.BigDecimal;
 
 @Service
@@ -23,15 +25,20 @@ public class DeclarationService {
         this.jmsTemplate = jmsTemplate;
     }
 
-    public void deposer(Declaration d) throws CalculException {
-        declarationRepo.save(d);
-        calculerCotisations(d);
-        jmsTemplate.convertAndSend("avis-echeance", d.getEmployeurId());
-    }
+    // Le proxy Spring intercepte cette méthode publique et annule aussi sur exception vérifiée.
+    @Transactional(rollbackFor = CalculException.class)
+    public Declaration deposer(Declaration d) throws CalculException {
+        int inseree = declarationRepo.insererSiAbsent(d.getEmployeurId(), d.getReference(), d.getSalaireBrut());
+        Declaration enregistree = declarationRepo.findByReference(d.getReference())
+            .orElseThrow(() -> new IllegalStateException("Déclaration introuvable après insertion"));
 
-    @Transactional
-    private void calculerCotisations(Declaration d) throws CalculException {
+        // Un dépôt déjà enregistré ne doit pas modifier une seconde fois le solde.
+        if (inseree == 0) {
+            return enregistree;
+        }
         BigDecimal montant = bareme.calculer(d);
         compteRepo.majSolde(d.getEmployeurId(), montant);
+        jmsTemplate.convertAndSend("avis-echeance", d.getEmployeurId());
+        return enregistree;
     }
 }
