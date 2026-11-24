@@ -30,7 +30,7 @@ class DeclarationServiceTest {
         depot = new Declaration(1001L, "REF", new BigDecimal("1000.00"));
     }
 
-    @Test void nouveauDepotCalculeCrediteEtEnvoieUnAvis() throws Exception {
+    @Test void givenNouvelleDeclarationWhenDepotThenSoldeMisAJourEtAvisEnvoye() throws Exception {
         when(declarations.insererSiAbsent(1001L, "REF", depot.getSalaireBrut())).thenReturn(1);
         when(declarations.findByReference("REF")).thenReturn(Optional.of(depot));
         when(bareme.calculer(depot)).thenReturn(new BigDecimal("200.00"));
@@ -39,7 +39,7 @@ class DeclarationServiceTest {
         verify(jms).convertAndSend("avis-echeance", 1001L);
     }
 
-    @Test void rejeuIdentiqueNeRecalculePasEtNeRenvoiePasAvis() throws Exception {
+    @Test void givenDeclarationExistanteWhenDepotIdentiqueThenAucunCalculNiAvis() throws Exception {
         Declaration initiale = new Declaration(1001L, "REF", new BigDecimal("1000"));
         when(declarations.insererSiAbsent(1001L, "REF", depot.getSalaireBrut())).thenReturn(0);
         when(declarations.findByReference("REF")).thenReturn(Optional.of(initiale));
@@ -47,14 +47,14 @@ class DeclarationServiceTest {
         verifyNoInteractions(bareme, comptes, jms);
     }
 
-    @Test void referenceExistanteNeDeclencheAucunNouveauMouvement() throws Exception {
+    @Test void givenReferenceExistanteWhenDepotDifferentThenAucunNouveauMouvement() throws Exception {
         Declaration initiale = new Declaration(1002L, "REF", new BigDecimal("1001"));
         when(declarations.insererSiAbsent(1001L, "REF", depot.getSalaireBrut())).thenReturn(0);
         when(declarations.findByReference("REF")).thenReturn(Optional.of(initiale));
         assertSame(initiale, service.deposer(depot));
         verifyNoInteractions(bareme, comptes, jms);
     }
-    @Test void echecDuCalculInterromptLeTraitement() throws Exception {
+    @Test void givenEchecDuCalculWhenDepotThenTraitementInterrompu() throws Exception {
         when(declarations.insererSiAbsent(1001L, "REF", depot.getSalaireBrut())).thenReturn(1);
         when(declarations.findByReference("REF")).thenReturn(Optional.of(depot));
         when(bareme.calculer(depot)).thenThrow(new CalculException("calcul impossible"));
@@ -62,7 +62,7 @@ class DeclarationServiceTest {
         verifyNoInteractions(comptes, jms);
     }
 
-    @Test void echecMiseAJourCompteInterromptEnvoi() throws Exception {
+    @Test void givenEchecMiseAJourCompteWhenDepotThenAvisNonEnvoye() throws Exception {
         when(declarations.insererSiAbsent(1001L, "REF", depot.getSalaireBrut())).thenReturn(1);
         when(declarations.findByReference("REF")).thenReturn(Optional.of(depot));
         when(bareme.calculer(depot)).thenReturn(new BigDecimal("200.00"));

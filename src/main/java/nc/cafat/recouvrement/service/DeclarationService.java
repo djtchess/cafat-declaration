@@ -33,12 +33,11 @@ public class DeclarationService {
             .orElseThrow(() -> new IllegalStateException("Déclaration introuvable après insertion"));
 
         // Un dépôt déjà enregistré ne doit pas modifier une seconde fois le solde.
-        if (inseree == 0) {
-            return enregistree;
+        if (inseree != 0) {
+            BigDecimal montant = bareme.calculer(d);
+            compteRepo.majSolde(d.getEmployeurId(), montant);
+            jmsTemplate.convertAndSend("avis-echeance", d.getEmployeurId());
         }
-        BigDecimal montant = bareme.calculer(d);
-        compteRepo.majSolde(d.getEmployeurId(), montant);
-        jmsTemplate.convertAndSend("avis-echeance", d.getEmployeurId());
         return enregistree;
     }
 }

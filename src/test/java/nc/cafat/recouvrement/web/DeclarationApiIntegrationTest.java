@@ -46,7 +46,7 @@ class DeclarationApiIntegrationTest {
             .andReturn();
     }
 
-    @Test void depotEtRejeuSontVisiblesSansDoublerLeSolde() throws Exception {
+    @Test void givenDeclarationValideWhenDepotEtRejeuThenDeclarationVisibleEtSoldeNonDouble() throws Exception {
         MvcResult premier = deposer("api-ref", EMPLOYEUR, "1000.00");
         MvcResult rejeu = deposer("api-ref", EMPLOYEUR, "1000");
         assertEquals(201, premier.getResponse().getStatus());
@@ -61,7 +61,7 @@ class DeclarationApiIntegrationTest {
         verify(jms, times(1)).convertAndSend("avis-echeance", EMPLOYEUR);
     }
 
-    @Test void erreurDeCalculRenvoie422EtNeConserveAucunMouvement() throws Exception {
+    @Test void givenSalaireNegatifWhenDepotThenErreur422EtAucunMouvement() throws Exception {
         MvcResult resultat = deposer("invalide-api", EMPLOYEUR, "-1");
         assertEquals(422, resultat.getResponse().getStatus());
         assertTrue(json.readTree(resultat.getResponse().getContentAsString()).has("erreur"));
@@ -71,7 +71,7 @@ class DeclarationApiIntegrationTest {
         verifyNoInteractions(jms);
     }
 
-    @Test void referenceReutiliseeNeModifiePasLeSolde() throws Exception {
+    @Test void givenReferenceExistanteWhenNouveauDepotThenSoldeInchange() throws Exception {
         assertEquals(201, deposer("api-conflit", EMPLOYEUR, "1000").getResponse().getStatus());
         assertEquals(201, deposer("api-conflit", EMPLOYEUR, "2000").getResponse().getStatus());
         assertEquals(201, deposer("api-conflit", 222L, "1000").getResponse().getStatus());
@@ -80,7 +80,7 @@ class DeclarationApiIntegrationTest {
         verify(jms, times(1)).convertAndSend("avis-echeance", EMPLOYEUR);
     }
 
-    @Test void compteAbsentRenvoie404() throws Exception {
+    @Test void givenCompteAbsentWhenConsultationThenErreur404() throws Exception {
         api.perform(get("/api/comptes/{id}", 123L)).andExpect(status().isNotFound());
     }
 }

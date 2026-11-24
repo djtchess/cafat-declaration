@@ -36,14 +36,14 @@ class DeclarationIntegrationTest {
         comptes.save(new CompteCotisant(EMPLOYEUR, BigDecimal.ZERO));
     }
 
-    @Test void annuleInsertionSiCalculEchoue() {
+    @Test void givenSalaireNegatifWhenDepotThenInsertionAnnulee() {
         assertThrows(CalculException.class, () -> service.deposer(new Declaration(EMPLOYEUR, "invalide", new BigDecimal("-1"))));
         assertTrue(declarations.findByReference("invalide").isEmpty());
         assertEquals(0, comptes.findById(EMPLOYEUR).orElseThrow().getSoldeDebiteur().signum());
         verifyNoInteractions(jms);
     }
 
-    @Test void rejoueUneSeuleFoisAvecUneReferenceExistante() throws Exception {
+    @Test void givenDeclarationExistanteWhenDepotIdentiqueThenAucunNouveauMouvement() throws Exception {
         Declaration premiere = service.deposer(new Declaration(EMPLOYEUR, "unique", new BigDecimal("1000")));
         Declaration rejeu = service.deposer(new Declaration(EMPLOYEUR, "unique", new BigDecimal("1000.00")));
         assertEquals(premiere.getId(), rejeu.getId());
@@ -53,13 +53,13 @@ class DeclarationIntegrationTest {
         verify(jms, times(1)).convertAndSend("avis-echeance", EMPLOYEUR);
     }
 
-    @Test void compteAbsentAnnuleLaDeclaration() {
+    @Test void givenCompteAbsentWhenDepotThenDeclarationAnnulee() {
         assertThrows(org.springframework.dao.InvalidDataAccessApiUsageException.class, () -> service.deposer(new Declaration(123L, "sans-compte", new BigDecimal("1000"))));
         assertTrue(declarations.findByReference("sans-compte").isEmpty());
         verifyNoInteractions(jms);
     }
 
-    @Test void echecEnvoiAnnuleDeclarationEtSolde() {
+    @Test void givenEchecEnvoiWhenDepotThenDeclarationEtSoldeAnnules() {
         doThrow(new org.springframework.jms.JmsException("envoi impossible") {})
             .when(jms).convertAndSend("avis-echeance", EMPLOYEUR);
         assertThrows(org.springframework.jms.JmsException.class,
@@ -67,7 +67,7 @@ class DeclarationIntegrationTest {
         assertTrue(declarations.findByReference("jms-erreur").isEmpty());
         assertEquals(0, comptes.findById(EMPLOYEUR).orElseThrow().getSoldeDebiteur().signum());
     }
-    @Test void depotsIdentiquesConcurrentsEtPaiementNePerdentAucunMouvement() throws Exception {
+    @Test void givenCompteExistantWhenDepotsIdentiquesEtPaiementConcurrentsThenAucunMouvementPerdu() throws Exception {
         ExecutorService executant = Executors.newFixedThreadPool(3);
         CountDownLatch depart = new CountDownLatch(1);
         try {

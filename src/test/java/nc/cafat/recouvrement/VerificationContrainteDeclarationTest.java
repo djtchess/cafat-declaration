@@ -7,14 +7,14 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class VerificationContrainteDeclarationTest {
-    @Test void demarrageRefuseSiLaContrainteEstAbsente() {
+    @Test void givenContrainteAbsenteWhenDemarrageThenDemarrageRefuse() {
         JdbcTemplate jdbc = mock(JdbcTemplate.class);
         when(jdbc.queryForObject(anyString(), eq(Boolean.class))).thenReturn(false);
         var verification = new VerificationContrainteDeclaration(jdbc);
         assertThrows(IllegalStateException.class, () -> verification.run(null));
     }
 
-    @Test void demarrageAutoriseSiLaContrainteExiste() {
+    @Test void givenContrainteExistanteWhenDemarrageThenDemarrageAutorise() {
         JdbcTemplate jdbc = mock(JdbcTemplate.class);
         when(jdbc.queryForObject(anyString(), eq(Boolean.class))).thenReturn(true);
         assertDoesNotThrow(() -> new VerificationContrainteDeclaration(jdbc).run(null));

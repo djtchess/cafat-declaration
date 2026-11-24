@@ -9,9 +9,12 @@ public class TestDatabaseCondition implements ExecutionCondition {
     @Override
     public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
         String url = System.getenv("TEST_DATABASE_URL");
+        ConditionEvaluationResult resultat;
         if (url == null || url.isBlank()) {
-            return ConditionEvaluationResult.disabled("TEST_DATABASE_URL doit désigner une base PostgreSQL réservée aux tests");
+            resultat = ConditionEvaluationResult.disabled("TEST_DATABASE_URL doit désigner une base PostgreSQL réservée aux tests");
+        } else {
+            resultat = ConditionEvaluationResult.enabled("Base de test configurée explicitement");
         }
-        return ConditionEvaluationResult.enabled("Base de test configurée explicitement");
+        return resultat;
     }
 }
