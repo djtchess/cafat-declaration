@@ -16,6 +16,10 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api")
 public class DeclarationController {
+    private static final String MESSAGE_DECLARATION_DEPOSEE = "Déclaration déposée";
+    private static final String ERREUR_COMPTE_INTROUVABLE = "Compte cotisant introuvable";
+    private static final String CLE_ERREUR = "erreur";
+
     private final DeclarationService service;
     private final DeclarationRepository declarations;
     private final CompteRepository comptes;
@@ -34,7 +38,7 @@ public class DeclarationController {
     public DepotResponse deposer(@RequestBody DepotRequest request) throws CalculException {
         Declaration d = new Declaration(request.employeurId(), request.reference(), request.salaireBrut());
         d = service.deposer(d);
-        return new DepotResponse(d.getId(), d.getReference(), "Déclaration déposée");
+        return new DepotResponse(d.getId(), d.getReference(), MESSAGE_DECLARATION_DEPOSEE);
     }
 
     @GetMapping("/declarations")
@@ -45,10 +49,10 @@ public class DeclarationController {
     @GetMapping("/comptes/{employeurId}")
     public CompteCotisant consulterCompte(@PathVariable Long employeurId) {
         return comptes.findById(employeurId).orElseThrow(() ->
-            new ResponseStatusException(HttpStatus.NOT_FOUND, "Compte cotisant introuvable"));
+            new ResponseStatusException(HttpStatus.NOT_FOUND, ERREUR_COMPTE_INTROUVABLE));
     }
 
     @ExceptionHandler(CalculException.class)
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
-    public Map<String, String> erreurCalcul(CalculException ex) { return Map.of("erreur", ex.getMessage()); }
+    public Map<String, String> erreurCalcul(CalculException ex) { return Map.of(CLE_ERREUR, ex.getMessage()); }
 }

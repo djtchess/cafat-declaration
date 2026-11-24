@@ -8,6 +8,8 @@ import org.springframework.data.repository.query.Param;
 import java.math.BigDecimal;
 
 public interface CompteRepository extends JpaRepository<CompteCotisant, Long> {
+    String ERREUR_COMPTE_INCONNU = "Compte inconnu : ";
+
     // La base additionne sur la ligne verrouillée, sans écraser un mouvement concurrent.
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("update CompteCotisant c set c.soldeDebiteur = c.soldeDebiteur + :montant " +
@@ -16,7 +18,7 @@ public interface CompteRepository extends JpaRepository<CompteCotisant, Long> {
 
     default void majSolde(Long employeurId, BigDecimal montant) {
         if (ajouterAuSolde(employeurId, montant) != 1) {
-            throw new IllegalArgumentException("Compte inconnu : " + employeurId);
+            throw new IllegalArgumentException(ERREUR_COMPTE_INCONNU + employeurId);
         }
     }
 }

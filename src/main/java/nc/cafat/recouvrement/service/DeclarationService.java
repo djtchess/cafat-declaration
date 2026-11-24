@@ -12,6 +12,9 @@ import java.math.BigDecimal;
 
 @Service
 public class DeclarationService {
+    private static final String ERREUR_DECLARATION_INTROUVABLE = "Déclaration introuvable après insertion";
+    private static final String DESTINATION_AVIS_ECHEANCE = "avis-echeance";
+
     private final DeclarationRepository declarationRepo;
     private final CompteRepository compteRepo;
     private final BaremeService bareme;
@@ -30,13 +33,13 @@ public class DeclarationService {
     public Declaration deposer(Declaration d) throws CalculException {
         int inseree = declarationRepo.insererSiAbsent(d.getEmployeurId(), d.getReference(), d.getSalaireBrut());
         Declaration enregistree = declarationRepo.findByReference(d.getReference())
-            .orElseThrow(() -> new IllegalStateException("Déclaration introuvable après insertion"));
+            .orElseThrow(() -> new IllegalStateException(ERREUR_DECLARATION_INTROUVABLE));
 
         // Un dépôt déjà enregistré ne doit pas modifier une seconde fois le solde.
         if (inseree != 0) {
             BigDecimal montant = bareme.calculer(d);
             compteRepo.majSolde(d.getEmployeurId(), montant);
-            jmsTemplate.convertAndSend("avis-echeance", d.getEmployeurId());
+            jmsTemplate.convertAndSend(DESTINATION_AVIS_ECHEANCE, d.getEmployeurId());
         }
         return enregistree;
     }
